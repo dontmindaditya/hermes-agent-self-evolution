@@ -11,7 +11,7 @@ class EvolutionConfig:
     """Configuration for a self-evolution optimization run."""
 
     # hermes-agent repo path
-    hermes_agent_path: Path = field(default_factory=lambda: get_hermes_agent_path())
+    hermes_agent_path: Path = field(default_factory=lambda: discover_hermes_agent_path() or Path.cwd())
 
     # Optimization parameters
     iterations: int = 10
@@ -44,8 +44,8 @@ class EvolutionConfig:
     create_pr: bool = True
 
 
-def get_hermes_agent_path() -> Path:
-    """Discover the hermes-agent repo path.
+def discover_hermes_agent_path() -> Optional[Path]:
+    """Discover the hermes-agent repo path, returning None if unavailable.
 
     Priority:
     1. HERMES_AGENT_REPO env var
@@ -65,6 +65,19 @@ def get_hermes_agent_path() -> Path:
     sibling_path = Path(__file__).parent.parent.parent / "hermes-agent"
     if sibling_path.exists():
         return sibling_path
+
+    return None
+
+
+def get_hermes_agent_path() -> Path:
+    """Discover the hermes-agent repo path.
+
+    Raises:
+        FileNotFoundError: If no configured or standard repo path exists.
+    """
+    path = discover_hermes_agent_path()
+    if path is not None:
+        return path
 
     raise FileNotFoundError(
         "Cannot find hermes-agent repo. Set HERMES_AGENT_REPO env var "
