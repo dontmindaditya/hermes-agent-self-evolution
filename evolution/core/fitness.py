@@ -4,11 +4,41 @@ Uses LLM-as-judge with rubrics to score agent outputs.
 Supports length penalties and multi-dimensional scoring.
 """
 
+import re
+
 import dspy
 from dataclasses import dataclass
 from typing import Optional
 
 from evolution.core.config import EvolutionConfig
+
+
+_TOKEN_RE = re.compile(r"[a-z0-9]+(?:'[a-z0-9]+)?")
+
+_STOPWORDS = {
+    "a",
+    "an",
+    "and",
+    "are",
+    "as",
+    "be",
+    "by",
+    "for",
+    "from",
+    "in",
+    "into",
+    "is",
+    "it",
+    "of",
+    "on",
+    "or",
+    "that",
+    "the",
+    "to",
+    "was",
+    "were",
+    "with",
+}
 
 
 @dataclass
