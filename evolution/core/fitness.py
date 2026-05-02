@@ -5,10 +5,10 @@ Supports length penalties and multi-dimensional scoring.
 """
 
 import re
-
-import dspy
 from dataclasses import dataclass
 from typing import Optional
+
+import dspy
 
 from evolution.core.config import EvolutionConfig
 
@@ -143,27 +143,43 @@ def skill_fitness_metric(example: dspy.Example, prediction: dspy.Prediction, tra
     # The prediction should have an 'output' field with the agent's response
     agent_output = getattr(prediction, "output", "") or ""
     expected = getattr(example, "expected_behavior", "") or ""
-    task = getattr(example, "task_input", "") or ""
 
     if not agent_output.strip():
         return 0.0
 
-    # Quick heuristic scoring (for speed during optimization)
-    # Full LLM-as-judge scoring is expensive — use it selectively
+    # Quick heuristic scoring (for speed during optimization).
+    # Full LLM-as-judge scoring is expensive, so this deterministic proxy
+    # rewards semantic coverage of rubric keywords while discounting filler.
     score = 0.5  # Base score for non-empty output
 
-    # Check if key phrases from expected behavior appear
-    expected_lower = expected.lower()
-    output_lower = agent_output.lower()
+    expected_tokens = _meaningful_tokens(expected)
+    output_tokens = _meaningful_tokens(agent_output)
+    if expected_tokens:
+        if not output_tokens:
+            return 0.0
 
-    # Simple keyword overlap as a fast proxy
-    expected_words = set(expected_lower.split())
-    output_words = set(output_lower.split())
-    if expected_words:
-        overlap = len(expected_words & output_words) / len(expected_words)
-        score = 0.3 + (0.7 * overlap)
+        matches = expected_tokens & output_tokens
+        recall = len(matches) / len(expected_tokens)
+        precision = len(matches) / len(output_tokens)
+        if recall + precision:
+            f1 = 2 * recall * precision / (recall + precision)
+        else:
+            f1 = 0.0
+
+        # Rubric coverage matters most, while precision prevents verbose
+        # keyword stuffing from getting the same score as a focused answer.
+        score = 0.2 + (0.6 * recall) + (0.2 * f1)
 
     return min(1.0, max(0.0, score))
+
+
+def _meaningful_tokens(text: str) -> set[str]:
+    """Return normalized, low-noise tokens for cheap fitness scoring."""
+    return {
+        token
+        for token in _TOKEN_RE.findall(text.lower())
+        if len(token) > 2 and token not in _STOPWORDS
+    }
 
 
 def _parse_score(value) -> float:
