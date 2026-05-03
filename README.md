@@ -1,6 +1,6 @@
 # 🧬 Hermes Agent Self-Evolution
 
-**Evolutionary self-improvement for [Hermes Agent](https://github.com/NousResearch/hermes-agent).**
+**Evolutionary self-improvement for [Hermes Agent]([(https://github.com/dontmindaditya/hermes-agent-self-evolution)).**
 
 Hermes Agent Self-Evolution uses DSPy + GEPA (Genetic-Pareto Prompt Evolution) to automatically evolve and optimize Hermes Agent's skills, tool descriptions, system prompts, and code — producing measurably better versions through reflective evolutionary search.
 
