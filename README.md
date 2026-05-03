@@ -29,7 +29,7 @@ GEPA reads execution traces to understand *why* things fail (not just that they 
 
 ```bash
 # Install
-git clone https://github.com/NousResearch/hermes-agent-self-evolution.git
+git clone https://github.com/dontmindaditya/hermes-agent-self-evolution.git
 cd hermes-agent-self-evolution
 pip install -e ".[dev]"
 
